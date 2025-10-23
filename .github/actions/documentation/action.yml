@@ -1,0 +1,45 @@
+name: "Verificacion de Documentacion"
+description: "Verifica que la documentacion este actualizada"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz
+
+    - name: Validar documentacion
+      shell: bash
+      run: cp Doxyfile Doxyfile.temp
+
+    - name: Crear directorio para documentación
+      shell: bash
+      run: mkdir -p ./build/docs
+
+    - name: Run validation
+      shell: bash
+      run: |
+        ERROR_FILE="$(pwd)/doxygen_errors.log"
+        doxygen -s Doxyfile.temp 2> "$ERROR_FILE"
+        if grep -q "error:" "$ERROR_FILE"; then
+          echo "Doxygen found errors:"
+          cat "$ERROR_FILE"
+          exit 1
+        else
+          echo "No critical errors found in the documentation."
+          exit 0
+        fi
+
+    - name: Clean up
+      shell: bash
+      run: rm -f Doxyfile.temp
+
+    - name: Upload Documentation Errors
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: doxygen_errors
+        path: "./doxygen_errors.log"
+        retention-days: 2
