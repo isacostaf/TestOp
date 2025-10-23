@@ -1,0 +1,75 @@
+name: "Test and Coverage Check"
+description: "Run tests and check code coverage with gcov and lcov"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Install dependencies"
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake bc gcc lcov
+        pip install gcovr
+
+    - name: "Configure and build"
+      shell: bash
+      run: |
+        PROJECT_PATH=$(pwd)
+        mkdir -p build
+        cd build
+        cmake ..
+        make -j$(nproc)
+
+    - name: "Run tests and generate coverage report"
+      shell: bash
+      run: |
+        PROJECT_PATH=$(pwd)
+
+        TEST_LOG="$PROJECT_PATH/test_output.txt"
+        TEST_ERRORS="$PROJECT_PATH/test_errors.txt"
+        COVERAGE_LOG="$PROJECT_PATH/coverage_output.txt"
+
+        cd build
+
+        # Run tests
+        ctest --output-on-failure -VV 1> "$TEST_LOG" 2> "$TEST_ERRORS"
+
+        # Detectar si no hubo tests
+        if grep -q "No tests were found" "$TEST_ERRORS"; then
+          echo "No tests were found. Skipping test stage..."
+          # crear archivos vacíos para no romper el paso de artifacts
+          echo "No tests executed" > "$TEST_LOG"
+          echo "" > "$TEST_ERRORS"
+          echo "Coverage skipped because no tests were found" > "$COVERAGE_LOG"
+          exit 0
+        fi
+
+        # Detectar si hubo fallos en tests
+        if [ -s "$TEST_ERRORS" ]; then
+          echo "Test errors found:"
+          cat "$TEST_ERRORS"
+          exit 1
+        fi
+
+        # Generate coverage
+        gcovr -r "$PROJECT_PATH" . > "$COVERAGE_LOG"
+
+        COVERAGE_RESULT=$(grep "TOTAL" "$COVERAGE_LOG" | awk '{print $NF}' | cut -d'%' -f 1)
+
+        if [ "$(echo "$COVERAGE_RESULT > 1" | bc)" -eq 1 ]; then
+          echo "Coverage is sufficient: $COVERAGE_RESULT%"
+          exit 0
+        else
+          echo "Coverage is insufficient: $COVERAGE_RESULT%"
+          exit 1
+        fi
+
+    - name: "Upload test logs"
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-logs
+        path: |
+          ./test_output.txt
+          ./test_errors.txt
+          ./coverage_output.txt
