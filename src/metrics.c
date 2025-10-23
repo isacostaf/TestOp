@@ -1,5 +1,5 @@
 #include "metrics.h"
-#include <cjson/cjson.h>
+#include <cjson/cJSON.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
