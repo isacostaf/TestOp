@@ -18,6 +18,31 @@ runs:
         # Usar o mesmo build que foi feito no step anterior
         # O build já foi feito no step de building
 
+    - name: "Create mock /proc files for testing"
+      shell: bash
+      run: |
+        # Criar diretório /proc se não existir
+        sudo mkdir -p /proc
+        
+        # Criar arquivo mock /proc/stat
+        sudo tee /proc/stat > /dev/null << 'EOF'
+cpu 12345 6789 11111 22222 3333 4444 5555 6666
+cpu0 1234 567 1111 2222 333 444 555 666
+EOF
+        
+        # Criar arquivo mock /proc/meminfo
+        sudo tee /proc/meminfo > /dev/null << 'EOF'
+MemTotal: 8048580 kB
+MemFree: 1456292 kB
+Buffers: 123456 kB
+Cached: 234567 kB
+EOF
+        
+        # Criar arquivo mock /proc/loadavg
+        sudo tee /proc/loadavg > /dev/null << 'EOF'
+0.42 0.35 0.30 1/123 45678
+EOF
+
     - name: "Run tests and generate coverage report"
       shell: bash
       run: |

@@ -36,16 +36,11 @@ void test_read_cpu_metrics(void)
 
     // Teste com dados válidos
     int result = read_cpu_metrics(&cpu);
-    // No Ubuntu, deve funcionar, mas vamos ser flexíveis
-    if (result == 0) {
-        TEST_ASSERT_TRUE(cpu.cpu_user >= 0.0);
-        TEST_ASSERT_TRUE(cpu.cpu_system >= 0.0);
-        TEST_ASSERT_TRUE(cpu.cpu_usage >= 0.0);
-        TEST_ASSERT_TRUE(cpu.cpu_usage <= 100.0);
-    } else {
-        // Se falhar, pelo menos não deve crashar
-        TEST_ASSERT_TRUE(result == -1);
-    }
+    TEST_ASSERT_EQUAL(0, result);
+    TEST_ASSERT_TRUE(cpu.cpu_user >= 0.0);
+    TEST_ASSERT_TRUE(cpu.cpu_system >= 0.0);
+    TEST_ASSERT_TRUE(cpu.cpu_usage >= 0.0);
+    TEST_ASSERT_TRUE(cpu.cpu_usage <= 100.0);
 }
 
 // Teste de leitura de métricas de memória
@@ -54,14 +49,11 @@ void test_read_memory_metrics(void)
     memory_metrics_t memory;
 
     int result = read_memory_metrics(&memory);
-    if (result == 0) {
-        TEST_ASSERT_TRUE(memory.mem_total > 0);
-        TEST_ASSERT_TRUE(memory.mem_free >= 0);
-        TEST_ASSERT_TRUE(memory.mem_used >= 0);
-        TEST_ASSERT_TRUE(memory.mem_used <= memory.mem_total);
-    } else {
-        TEST_ASSERT_TRUE(result == -1);
-    }
+    TEST_ASSERT_EQUAL(0, result);
+    TEST_ASSERT_TRUE(memory.mem_total > 0);
+    TEST_ASSERT_TRUE(memory.mem_free >= 0);
+    TEST_ASSERT_TRUE(memory.mem_used >= 0);
+    TEST_ASSERT_TRUE(memory.mem_used <= memory.mem_total);
 }
 
 // Teste de leitura de métricas de carga
@@ -70,13 +62,10 @@ void test_read_load_metrics(void)
     load_metrics_t load;
 
     int result = read_load_metrics(&load);
-    if (result == 0) {
-        TEST_ASSERT_TRUE(load.load_1m >= 0.0);
-        TEST_ASSERT_TRUE(load.load_5m >= 0.0);
-        TEST_ASSERT_TRUE(load.load_15m >= 0.0);
-    } else {
-        TEST_ASSERT_TRUE(result == -1);
-    }
+    TEST_ASSERT_EQUAL(0, result);
+    TEST_ASSERT_TRUE(load.load_1m >= 0.0);
+    TEST_ASSERT_TRUE(load.load_5m >= 0.0);
+    TEST_ASSERT_TRUE(load.load_15m >= 0.0);
 }
 
 // Teste de leitura completa de métricas
@@ -85,14 +74,11 @@ void test_read_system_metrics(void)
     system_metrics_t metrics;
 
     int result = read_system_metrics(&metrics);
-    if (result == 0) {
-        TEST_ASSERT_TRUE(metrics.timestamp > 0);
-        TEST_ASSERT_TRUE(metrics.cpu.cpu_usage >= 0.0);
-        TEST_ASSERT_TRUE(metrics.memory.mem_total > 0);
-        TEST_ASSERT_TRUE(metrics.load.load_1m >= 0.0);
-    } else {
-        TEST_ASSERT_TRUE(result == -1);
-    }
+    TEST_ASSERT_EQUAL(0, result);
+    TEST_ASSERT_TRUE(metrics.timestamp > 0);
+    TEST_ASSERT_TRUE(metrics.cpu.cpu_usage >= 0.0);
+    TEST_ASSERT_TRUE(metrics.memory.mem_total > 0);
+    TEST_ASSERT_TRUE(metrics.load.load_1m >= 0.0);
 }
 
 // Teste de conversão para JSON
