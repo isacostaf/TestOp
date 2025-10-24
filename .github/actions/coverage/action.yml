@@ -15,10 +15,8 @@ runs:
       shell: bash
       run: |
         PROJECT_PATH=$(pwd)
-        mkdir -p build
-        cd build
-        cmake ..
-        make -j$(nproc)
+        # Usar o mesmo build que foi feito no step anterior
+        # O build já foi feito no step de building
 
     - name: "Run tests and generate coverage report"
       shell: bash
